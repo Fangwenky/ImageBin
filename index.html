@@ -316,23 +316,25 @@
             }
         }
         
-        // Upload to Catbox.moe (free, works!)
+        // Upload to Imgur (free, works in browser!)
         async function uploadToImgbb(formData) {
             try {
-                // Convert to base64 for catbox
-                const fileInput = formData.get('image');
+                const fileInput = document.getElementById('fileInput').files[0];
                 const reader = new FileReader();
                 return new Promise((resolve) => {
                     reader.onload = async () => {
                         const base64 = reader.result.split(',')[1];
                         try {
-                            const response = await fetch('https://catbox.moe/user/api.php', {
+                            const response = await fetch('https://api.imgur.com/3/image', {
                                 method: 'POST',
-                                body: 'reqtype=fileupload&fileToUpload=' + encodeURIComponent(base64)
+                                headers: {
+                                    'Authorization': 'Client-ID 546c25a11c5a1c5'
+                                },
+                                body: JSON.stringify({ image: base64, type: 'base64' })
                             });
-                            const text = await response.text();
-                            if (text.startsWith('https://')) {
-                                resolve(text.trim());
+                            const data = await response.json();
+                            if (data.success && data.data.link) {
+                                resolve(data.data.link);
                             } else {
                                 resolve(null);
                             }
